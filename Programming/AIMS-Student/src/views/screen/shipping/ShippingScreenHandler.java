@@ -10,6 +10,7 @@ import controller.PlaceOrderController;
 import common.exception.InvalidDeliveryInfoException;
 import entity.invoice.Invoice;
 import entity.order.Order;
+import entity.order.RushOrder;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
@@ -22,85 +23,111 @@ import javafx.stage.Stage;
 import utils.Configs;
 import views.screen.BaseScreenHandler;
 import views.screen.invoice.InvoiceScreenHandler;
-import views.screen.popup.PopupScreen;
 
 public class ShippingScreenHandler extends BaseScreenHandler implements Initializable {
 
-	@FXML
-	private Label screenTitle;
+    @FXML
+    protected Label screenTitle;
 
-	@FXML
-	private TextField name;
+    @FXML
+    protected TextField name;
 
-	@FXML
-	private TextField phone;
+    @FXML
+    protected TextField phone;
 
-	@FXML
-	private TextField address;
+    @FXML
+    protected TextField address;
 
-	@FXML
-	private TextField instructions;
+    @FXML
+    protected TextField instructions;
 
-	@FXML
-	private ComboBox<String> province;
+    @FXML
+    protected Label errorMessage;
 
-	private Order order;
+    @FXML
+    protected ComboBox<String> province;
 
-	public ShippingScreenHandler(Stage stage, String screenPath, Order order) throws IOException {
-		super(stage, screenPath);
-		this.order = order;
-	}
+    protected Order order;
 
-	@Override
-	public void initialize(URL arg0, ResourceBundle arg1) {
-		final BooleanProperty firstTime = new SimpleBooleanProperty(true); // Variable to store the focus on stage load
-		name.focusedProperty().addListener((observable,  oldValue,  newValue) -> {
-            if(newValue && firstTime.get()){
+    protected RushOrder rushOrder;
+
+    public ShippingScreenHandler(Stage stage, String screenPath, Order order) throws IOException {
+        super(stage, screenPath);
+        this.order = order;
+        this.rushOrder = null;
+    }
+    public ShippingScreenHandler(Stage stage, String screenPath, Order order, RushOrder rushOrder) throws IOException {
+        super(stage, screenPath);
+        this.order = order;
+        this.rushOrder = rushOrder;
+    }
+
+    @Override
+    public void initialize(URL arg0, ResourceBundle arg1) {
+        final BooleanProperty firstTime = new SimpleBooleanProperty(true); // Variable to store the focus on stage load
+        name.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue && firstTime.get()) {
                 content.requestFocus(); // Delegate the focus to container
                 firstTime.setValue(false); // Variable value changed for future references
             }
         });
-		this.province.getItems().addAll(Configs.PROVINCES);
-	}
+        this.province.getItems().addAll(Configs.PROVINCES);
+    }
 
-	@FXML
-	void submitDeliveryInfo(MouseEvent event) throws IOException, InterruptedException, SQLException {
+    @FXML
+    void submitDeliveryInfo(MouseEvent event) throws IOException, InterruptedException, SQLException {
 
-		// add info to messages
-		HashMap messages = new HashMap<>();
-		messages.put("name", name.getText());
-		messages.put("phone", phone.getText());
-		messages.put("address", address.getText());
-		messages.put("instructions", instructions.getText());
-		messages.put("province", province.getValue());
-		try {
-			// process and validate delivery info
-			getBController().processDeliveryInfo(messages);
-		} catch (InvalidDeliveryInfoException e) {
-			throw new InvalidDeliveryInfoException(e.getMessage());
-		}
-	
-		// calculate shipping fees
-		int shippingFees = getBController().calculateShippingFee(order);
-		order.setShippingFees(shippingFees);
-		order.setDeliveryInfo(messages);
-		
-		// create invoice screen
-		Invoice invoice = getBController().createInvoice(order);
-		BaseScreenHandler InvoiceScreenHandler = new InvoiceScreenHandler(this.stage, Configs.INVOICE_SCREEN_PATH, invoice);
-		InvoiceScreenHandler.setPreviousScreen(this);
-		InvoiceScreenHandler.setHomeScreenHandler(homeScreenHandler);
-		InvoiceScreenHandler.setScreenTitle("Invoice Screen");
-		InvoiceScreenHandler.setBController(getBController());
-		InvoiceScreenHandler.show();
-	}
+        // add info to messages
+        HashMap messages = new HashMap<>();
+        messages.put("name", name.getText());
+        messages.put("phone", phone.getText());
+        messages.put("address", address.getText());
+        messages.put("instructions", instructions.getText());
+        messages.put("province", province.getValue());
+        boolean check;
 
-	public PlaceOrderController getBController(){
-		return (PlaceOrderController) super.getBController();
-	}
+        try {
+            // process and validate delivery info
+            check = getBController().processDeliveryInfo(messages);
+        } catch (InvalidDeliveryInfoException e) {
+            throw new InvalidDeliveryInfoException(e.getMessage());
+        }
 
-	public void notifyError(){
-		// TODO: implement later on if we need
-	}
+        if (check) {
+            calculateShippingFee(messages);
+            order.setDeliveryInfo(messages);
+            createInvoiceScreen();
+        }
+        else {
+        	errorMessage.setText("Wrong Delivery Info");
+        }
+    }
+
+    public void calculateShippingFee ( HashMap messages) {
+        // calculate shipping fees
+        int shippingFees = getBController().calculateShippingFee(order);
+        order.setShippingFees(shippingFees);
+        order.setDeliveryInfo(messages);
+    }
+
+    public void createInvoiceScreen () throws IOException {
+
+        // create invoice screen
+        Invoice invoice = getBController().createInvoice(order, rushOrder);
+
+        BaseScreenHandler InvoiceScreenHandler = new InvoiceScreenHandler(this.stage, Configs.INVOICE_SCREEN_PATH, invoice);
+        InvoiceScreenHandler.setHomeScreenHandler(homeScreenHandler);
+        InvoiceScreenHandler.setScreenTitle("Invoice Screen");
+        InvoiceScreenHandler.setBController(getBController());
+        InvoiceScreenHandler.show();
+    }
+
+    public PlaceOrderController getBController() {
+        return (PlaceOrderController) super.getBController();
+    }
+
+    public void notifyError() {
+        // TODO: implement later on if we need
+    }
 
 }

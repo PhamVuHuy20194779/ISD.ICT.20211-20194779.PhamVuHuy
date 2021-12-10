@@ -13,6 +13,7 @@ import common.exception.InvalidDeliveryInfoException;
 import entity.invoice.Invoice;
 import entity.order.Order;
 import entity.order.OrderMedia;
+import entity.order.RushOrder;
 import views.screen.popup.PopupScreen;
 
 /**
@@ -56,8 +57,8 @@ public class PlaceOrderController extends BaseController{
      * @param order
      * @return Invoice
      */
-    public Invoice createInvoice(Order order) {
-        return new Invoice(order);
+    public Invoice createInvoice(Order order, RushOrder rorder) {
+        return new Invoice(order,rorder);
     }
 
     /**
@@ -66,10 +67,10 @@ public class PlaceOrderController extends BaseController{
      * @throws InterruptedException
      * @throws IOException
      */
-    public void processDeliveryInfo(HashMap info) throws InterruptedException, IOException{
+    public boolean processDeliveryInfo(HashMap info) throws InterruptedException, IOException{
         LOGGER.info("Process Delivery Info");
         LOGGER.info(info.toString());
-        validateDeliveryInfo(info);
+        return validateDeliveryInfo(info);
     }
     
     /**
@@ -78,8 +79,10 @@ public class PlaceOrderController extends BaseController{
    * @throws InterruptedException
    * @throws IOException
    */
-    public void validateDeliveryInfo(HashMap<String, String> info) throws InterruptedException, IOException{
-    	
+    public boolean validateDeliveryInfo(HashMap<String, String> info) throws InterruptedException, IOException{
+    	if (validatePhoneNumber(info.get("phone")) && validateName(info.get("name")) && validateAddress(info.get("address")))
+    		return true;
+    	return false;
     }
     
     public boolean validatePhoneNumber(String phoneNumber) {

@@ -62,6 +62,7 @@ public class Media {
                 .setQuantity(res.getInt("quantity"))
                 .setCategory(res.getString("category"))
                 .setMediaURL(res.getString("imageUrl"))
+                .setRushSupport(res.getBoolean("supportRushOrder"))
                 .setPrice(res.getInt("price"))
                 .setType(res.getString("type"));
         }
@@ -79,6 +80,7 @@ public class Media {
                 .setQuantity(res.getInt("quantity"))
                 .setCategory(res.getString("category"))
                 .setMediaURL(res.getString("imageUrl"))
+                .setRushSupport(res.getBoolean("supportRushOrder"))
                 .setPrice(res.getInt("price"))
                 .setType(res.getString("type"));
             medium.add(media);

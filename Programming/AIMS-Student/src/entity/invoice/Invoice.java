@@ -1,18 +1,34 @@
 package entity.invoice;
 
 import entity.order.Order;
+import entity.order.RushOrder;
 
 public class Invoice {
 
-    private Order order;
+	private Order order;
+	private RushOrder rushOrder;
+	private int amountRushOrder;
     private int amount;
-    
-    public Invoice(){
 
+    public RushOrder getRushOrder() {
+        return rushOrder;
     }
 
-    public Invoice(Order order){
+    public void setRushOrder(RushOrder rushOrder) {
+        this.rushOrder = rushOrder;
+    }
+
+    public int getAmountRushOrder() {
+        return amountRushOrder;
+    }
+
+    public void setAmountRushOrder(int amountRushOrder) {
+        this.amountRushOrder = amountRushOrder;
+    }
+
+    public Invoice(Order order, RushOrder rushOrder){
         this.order = order;
+        this.rushOrder = rushOrder;
     }
 
     public Order getOrder() {
@@ -28,6 +44,5 @@ public class Invoice {
     }
 
     public void saveInvoice(){
-        
     }
 }
